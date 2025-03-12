@@ -9,7 +9,7 @@ const app = express();
 const isProduction = process.env.NODE_ENV === "production";
 
 const allowedOrigins = isProduction
-  ? ["https://dashboard.mediacar.com.br", "https://app.mediacar.com.br"]
+  ? ["https://infocidadao.vercel.app", "http://localhost:5173"]
   : ["http://localhost:5174", "http://localhost:5173"];
 
 const corsOptions = {
