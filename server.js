@@ -10,7 +10,11 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const allowedOrigins = isProduction
   ? ["https://infocidadao.vercel.app", "http://localhost:5173"]
-  : ["http://localhost:5174", "http://localhost:5173"];
+  : [
+      "http://localhost:5174",
+      "http://localhost:5173",
+      "https://infocidadao.vercel.app",
+    ];
 
 const corsOptions = {
   origin: (origin, callback) => {
