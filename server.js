@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import { connectMongoDB } from "./config/mongoConfig.js";
 import mapRoutes from "./routes/MapRoutes.js";
+import locationRoutes from "./routes/LocationRoutes.js";
+import geoAlertRoutes from "./routes/GeoAlertRoutes.js";
 import cookieParser from "cookie-parser";
 connectMongoDB();
 const app = express();
@@ -35,6 +37,8 @@ app.use(cookieParser());
 
 // Outras rotas
 app.use("/", mapRoutes);
+app.use("/", locationRoutes);
+app.use("/", geoAlertRoutes);
 
 const PORT = process.env.PORT || 3000;
 

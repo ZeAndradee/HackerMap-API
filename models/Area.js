@@ -11,14 +11,14 @@ const AreaSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    coordinates: {
+    geometry: {
       type: {
         type: String,
-        enum: ["Polygon"],
+        enum: ["Polygon", "MultiPolygon"],
         required: true,
       },
       coordinates: {
-        type: [[[Number]]], // Array of arrays of arrays of numbers for polygon
+        type: [[[Number]]],
         required: true,
       },
     },
@@ -26,6 +26,11 @@ const AreaSchema = new mongoose.Schema(
       type: String,
       enum: ["active", "inactive"],
       default: "active",
+    },
+    alertType: {
+      type: String,
+      enum: ["info", "warning", "danger", "standard"],
+      default: "standard",
     },
     properties: {
       type: Map,
@@ -36,7 +41,7 @@ const AreaSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-AreaSchema.index({ coordinates: "2dsphere" });
+AreaSchema.index({ geometry: "2dsphere" });
 
 const Area = mongoose.model("Area", AreaSchema);
 
