@@ -111,7 +111,7 @@ export const checkUserInAreas = async (userId, location) => {
 
       if (isNewEntry) {
         // Trigger an alert for new entries
-        const alert = triggerAreaEntryAlert(userId, area);
+        const alert = await triggerAreaEntryAlert(userId, area);
         console.log("New area entry alert triggered:", alert);
       }
 
@@ -193,22 +193,90 @@ const checkIfNewAreaEntry = async (userId, areaId) => {
  * @param {String} userId - The user ID
  * @param {Object} area - The area the user entered
  */
-const triggerAreaEntryAlert = (userId, area) => {
+const triggerAreaEntryAlert = async (userId, area) => {
   const timestamp = new Date().toISOString();
+  console.log("AREA", area);
 
-  console.log(
-    `[ALERT] ${timestamp} - User ${userId} has entered area "${area.name}" (ID: ${area._id})`
-  );
-  console.log(`Area details: ${area.description || "No description"}`);
-  console.log(`Alert type: ${area.alertType || "Standard"}`);
+  // Correctly access description from the Map object
+  let messageContent =
+    area.properties && area.properties.get
+      ? area.properties.get("description")
+      : `Você acaba de entrar em ${area.name}`;
 
-  // Here you would implement the WhatsApp notification
-  // This would involve integrating with a WhatsApp API service
+  // Make a WhatsApp API request
+  try {
+    console.log(`Sending WhatsApp message about area: ${area.name}`);
+    console.log(
+      `Description from Map: ${
+        area.properties && area.properties.get
+          ? area.properties.get("description")
+          : "not available"
+      }`
+    );
+    console.log(`Message content: ${messageContent}`);
 
-  // For demonstration, just log what would be sent
-  console.log(
-    `[NOTIFICATION DEMO] Would send WhatsApp message to user ${userId} about entering area "${area.name}"`
-  );
+    // Validate that we have required fields
+    if (!messageContent) {
+      console.error(
+        "Message content is missing - cannot send WhatsApp message"
+      );
+      return {
+        userId,
+        areaId: area._id,
+        areaName: area.name,
+        timestamp,
+        alertType: area.alertType || "entry",
+        status: "failed",
+        reason: "Missing message content",
+      };
+    }
+
+    const requestBody = {
+      to: "5581992673394",
+      message: messageContent,
+    };
+
+    console.log("WhatsApp API request body:", JSON.stringify(requestBody));
+
+    const response = await fetch(
+      "https://whatsapp-api-ai-groq.onrender.com/api/send-message",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      }
+    );
+
+    const responseData = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      console.error(`WhatsApp API error: ${response.status}`, responseData);
+      return {
+        userId,
+        areaId: area._id,
+        areaName: area.name,
+        timestamp,
+        alertType: area.alertType || "entry",
+        status: "failed",
+        error: responseData,
+      };
+    } else {
+      console.log("WhatsApp message sent successfully");
+    }
+  } catch (error) {
+    console.error("Error sending WhatsApp notification:", error);
+    return {
+      userId,
+      areaId: area._id,
+      areaName: area.name,
+      timestamp,
+      alertType: area.alertType || "entry",
+      status: "failed",
+      error: error.message,
+    };
+  }
 
   // Return the alert information (could be stored in a database later)
   return {
@@ -217,6 +285,7 @@ const triggerAreaEntryAlert = (userId, area) => {
     areaName: area.name,
     timestamp,
     alertType: area.alertType || "entry",
+    status: "success",
   };
 };
 
